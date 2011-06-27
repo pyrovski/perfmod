@@ -1,11 +1,14 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/proc_fs.h>
-#include <asm/msr.h> // for MSR_IA32_MPERF and MSR_IA32_APERF
+#include <linux/types.h>
+#include <asm/msr.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Peter Bailey <peter.eldridge.bailey@gmail.com>");
 MODULE_DESCRIPTION("export aperf and mperf counters on Nehalem");
+
+//#define perfmod_DEBUG
 
 #define procfs_name "mperf_aperf"
 
@@ -18,7 +21,9 @@ procfile_read(char *buffer,
 {
   int ret;
   
+#ifdef perfmod_DEBUG
   printk(KERN_INFO "procfile_read (/proc/%s) called\n", procfs_name);
+#endif
   
   /* 
    * We give all of our information in one go, so if the
@@ -35,8 +40,18 @@ procfile_read(char *buffer,
     /* we have finished to read, return 0 */
     ret  = 0;
   } else {
+    u64 aperf, mperf;
+    int size;
+
+    rdmsrl(MSR_IA32_MPERF, mperf);
+    rdmsrl(MSR_IA32_APERF, aperf);
+
+#ifdef perfmod_DEBUG
+    printk(KERN_ALERT "aperf: 0x%llx mperf: 0x%llx\n", aperf, mperf);
+#endif
+
     /* fill the buffer, return the buffer size */
-    int size = buffer_length > 16 ? 16 : buffer_length;
+    size = buffer_length > 16 ? 16 : buffer_length;
     ret = snprintf(buffer, size, "HelloWorld!!!!\n");
   }
 
@@ -60,12 +75,16 @@ int __init init_module(void)
   proc_file->gid  = 0;
   proc_file->size  = 16;
 
+#ifdef perfmod_DEBUG
   printk(KERN_INFO "/proc/%s created\n", procfs_name);
+#endif
   return 0;
 }
 
 void __exit cleanup_module(void)
 {
   remove_proc_entry(procfs_name, 0);
+#ifdef perfmod_DEBUG
   printk(KERN_INFO "/proc/%s removed\n", procfs_name);
+#endif
 }
