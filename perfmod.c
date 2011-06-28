@@ -3,6 +3,7 @@
 #include <linux/proc_fs.h>
 #include <linux/types.h>
 #include <asm/msr.h>
+#include <linux/errno.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Peter Bailey <peter.eldridge.bailey@gmail.com>");
@@ -20,28 +21,24 @@ procfile_read(char *buffer,
 	      off_t offset, int buffer_length, int *eof, void *data)
 {
   int ret;
+  u64 aperf, mperf;
   
 #ifdef perfmod_DEBUG
   printk(KERN_INFO "procfile_read (/proc/%s) called\n", procfs_name);
 #endif
-  
-  /* 
-   * We give all of our information in one go, so if the
-   * user asks us if we have more information the
-   * answer should always be no.
-   *
-   * This is important because the standard read
-   * function from the library would continue to issue
-   * the read system call until the kernel replies
-   * that it has no more information, or until its
-   * buffer is filled.
-   */
+
   if (offset > 0) {
     /* we have finished to read, return 0 */
     ret  = 0;
+  } else if(buffer_length < 8){
+    // this should be an error...
+    ret = 0;
+  } else if(buffer_length < 16){
+    rdmsrl(MSR_IA32_MPERF, mperf);
+    *((u64*)buffer) = mperf;
+    ret = sizeof(u64);
   } else {
-    u64 aperf, mperf;
-    int size;
+    //int size;
 
     rdmsrl(MSR_IA32_MPERF, mperf);
     rdmsrl(MSR_IA32_APERF, aperf);
@@ -50,9 +47,9 @@ procfile_read(char *buffer,
     printk(KERN_ALERT "aperf: 0x%llx mperf: 0x%llx\n", aperf, mperf);
 #endif
 
-    /* fill the buffer, return the buffer size */
-    size = buffer_length > 16 ? 16 : buffer_length;
-    ret = snprintf(buffer, size, "HelloWorld!!!!\n");
+    *((u64*)buffer) = mperf;
+    *((u64*)buffer + 1) = aperf;
+    ret = 2 * sizeof(u64);
   }
 
   return ret;
