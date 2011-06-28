@@ -1,0 +1,64 @@
+core 2 begin mperf: 0xcf52aa66b06b aperf: 0x7d4c9b86d77c
+core 2  end mperf: 0xcf537f3bb2cb aperf: 0x7d4d705bd9ef
+core 2 time: 1.338975s mperf rate: 2666763433.223175/s aperf rate: 2666763447.413133/s, tsc rate: 2666760009.708919/s
+core 2 aperf/mperf ratio: 1.000000
+core 3 begin mperf: 0xcee18fc66bba aperf: 0x7d0fd7e1cd5b
+core 3  end mperf: 0xcee26488a96a aperf: 0x7d10aca40b21
+core 3 time: 1.338514s mperf rate: 2666762968.485948/s aperf rate: 2666762984.922085/s, tsc rate: 2666759224.035012/s
+core 3 aperf/mperf ratio: 1.000000
+core 1 begin mperf: 0xb961b10685ef aperf: 0x7021d6cd280f
+core 1  end mperf: 0xb962864d2ec7 aperf: 0x7022ac13d0fe
+core 1 time: 1.341766s mperf rate: 2666767343.933294/s aperf rate: 2666767361.074882/s, tsc rate: 2666763712.897778/s
+core 1 aperf/mperf ratio: 1.000000
+core 10 begin mperf: 0xce08da4a1872 aperf: 0x7bd2621aeed9
+core 10  end mperf: 0xce09af0d2e9e aperf: 0x7bd336de04f3
+core 10 time: 1.338532s mperf rate: 2666768510.577259/s aperf rate: 2666768497.129691/s, tsc rate: 2666763272.002462/s
+core 10 aperf/mperf ratio: 1.000000
+core 9 begin mperf: 0xb90b8482b50e aperf: 0x6f387bf286fb
+core 9  end mperf: 0xb90c59bf7586 aperf: 0x6f39512f4755
+core 9 time: 1.341523s mperf rate: 2666766384.176790/s aperf rate: 2666766361.814147/s, tsc rate: 2666761204.988658/s
+core 9 aperf/mperf ratio: 1.000000
+core 11 begin mperf: 0xccc37dfee7fd aperf: 0x7b10ff0a5167
+core 11  end mperf: 0xccc452d8e2cd aperf: 0x7b11d3e44c23
+core 11 time: 1.339097s mperf rate: 2666763731.081468/s aperf rate: 2666763716.146030/s, tsc rate: 2666758617.187552/s
+core 11 aperf/mperf ratio: 1.000000
+core 0 begin mperf: 0xa62930287c5d aperf: 0x6548eb0cfc50
+core 0  end mperf: 0xa62a442f329d aperf: 0x6549ff13b2a6
+core 0 time: 1.736538s mperf rate: 2666772329.773377/s aperf rate: 2666772342.442262/s, tsc rate: 2666769565.653041/s
+core 0 aperf/mperf ratio: 1.000000
+core 8 begin mperf: 0x897494e73289 aperf: 0x52961f010ea3
+core 8  end mperf: 0x8975a7698781 aperf: 0x529731836389
+core 8 time: 1.726996s mperf rate: 2666768548.392700/s aperf rate: 2666768537.969978/s, tsc rate: 2666764536.802633/s
+core 8 aperf/mperf ratio: 1.000000
+core 4 begin mperf: 0xe793cbc8534d aperf: 0x8bb6ce705fdf
+core 4  end mperf: 0xe7952e639025 aperf: 0x8bb7a333eae1
+core 4 time: 2.230906s mperf rate: 2666767725.758055/s aperf rate: 1600060647.109291/s, tsc rate: 2666764440.993928/s
+core 4 aperf/mperf ratio: 0.600000
+core 6 begin mperf: 0xe6992c897e44 aperf: 0x8b19fece2b58
+core 6  end mperf: 0xe69a8f5279f8 aperf: 0x8b1ad3ad28e1
+core 6 time: 2.232031s mperf rate: 2666766769.816369/s aperf rate: 1600060074.882473/s, tsc rate: 2666763185.636758/s
+core 6 aperf/mperf ratio: 0.600000
+core 5 begin mperf: 0xe33807890215 aperf: 0x892a344019d3
+core 5  end mperf: 0xe3396ab054e1 aperf: 0x892b0957b1fd
+core 5 time: 2.234351s mperf rate: 2666764881.614392/s aperf rate: 1600058938.814895/s, tsc rate: 2666761387.087347/s
+core 5 aperf/mperf ratio: 0.600000
+core 7 begin mperf: 0xdb0b0ab3b389 aperf: 0x843349c03c62
+core 7  end mperf: 0xdb0c6e46a3fd aperf: 0x84341f18665a
+core 7 time: 2.236994s mperf rate: 2666766871.971941/s aperf rate: 1600060134.269470/s, tsc rate: 2666763302.896655/s
+core 7 aperf/mperf ratio: 0.600000
+core 12 begin mperf: 0xe512b954db85 aperf: 0x897e2762a189
+core 12  end mperf: 0xe5141bb1ecb7 aperf: 0x897efc00def8
+core 12 time: 2.229384s mperf rate: 2666760734.803874/s aperf rate: 1600056431.283260/s, tsc rate: 2666755755.850047/s
+core 12 aperf/mperf ratio: 0.600000
+core 13 begin mperf: 0xe5070a7d5210 aperf: 0x897c75a94ae5
+core 13  end mperf: 0xe5086d990c4c aperf: 0x897d4ab9edc3
+core 13 time: 2.234066s mperf rate: 2666764915.629171/s aperf rate: 1600058940.962353/s, tsc rate: 2666759731.359772/s
+core 13 aperf/mperf ratio: 0.600000
+core 14 begin mperf: 0xe3c773651b87 aperf: 0x88b86877177d
+core 14  end mperf: 0xe3c8d625e3d5 aperf: 0x88b93d51292f
+core 14 time: 2.231831s mperf rate: 2666764936.054746/s aperf rate: 1600058951.596245/s, tsc rate: 2666759846.063613/s
+core 14 aperf/mperf ratio: 0.600000
+core 15 begin mperf: 0xdb2493fcde42 aperf: 0x839aa909b3d5
+core 15  end mperf: 0xdb25f7618766 aperf: 0x839b7e46193a
+core 15 time: 2.235893s mperf rate: 2666723577.559391/s aperf rate: 1600034136.248917/s, tsc rate: 2666718586.265085/s
+core 15 aperf/mperf ratio: 0.600000
