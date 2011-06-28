@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <assert.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <sys/time.h>
 #include <sched.h>
 
@@ -51,10 +52,35 @@ int main(int argc, char ** argv){
   assert(file);
 
   cpu_set_t cpu_set;
-  //sched_getaffinity(0, sizeof(cpu_set_t), &cpu_set);
+  int core = 0;
   CPU_ZERO(&cpu_set);
-  CPU_SET(0, &cpu_set);
-  sched_setaffinity(0, sizeof(cpu_set_t), &cpu_set);
+  if(argc > 1){
+    if(atoi(argv[1]) >= 0)
+      core = atoi(argv[1]);
+    else
+      core = -1;
+  }
+  if(core >= 0){
+    CPU_SET(core, &cpu_set);
+    sched_setaffinity(0, sizeof(cpu_set_t), &cpu_set);
+  } else {
+    sched_getaffinity(0, sizeof(cpu_set_t), &cpu_set);
+    int i, section;
+    for(i = 0; i < sizeof(cpu_set_t) / sizeof(int); i++){
+      section = *((int*)&cpu_set + i);
+      if(!section)
+	continue;
+      int shift_count = 0;
+      while(!(section & 1)){
+	section >>= 1;
+	shift_count++;
+      }
+      core = shift_count;
+      break;
+    }
+    if(core < 0)
+      printf("could not determine core association\n");
+  }
   
   struct timeval tvBegin, tvEnd, tvDiff;
   
@@ -78,14 +104,16 @@ int main(int argc, char ** argv){
   
   double elapsedTime = tvDiff.tv_sec + tvDiff.tv_usec / 1000000.0;
 
-  printf("begin mperf: 0x%llx aperf: 0x%llx\n", mperf_aperf_begin[0], mperf_aperf_begin[1]);
-  printf("  end mperf: 0x%llx aperf: 0x%llx\n", mperf_aperf_end[0], mperf_aperf_end[1]);
-  printf("time: %lfs mperf rate: %lf/s aperf rate: %lf/s, tsc rate: %lf/s\n", 
-	 elapsedTime, 
+  printf("core %d begin mperf: 0x%llx aperf: 0x%llx\n", core,
+	 mperf_aperf_begin[0], mperf_aperf_begin[1]);
+  printf("core %d  end mperf: 0x%llx aperf: 0x%llx\n", core, 
+	 mperf_aperf_end[0], mperf_aperf_end[1]);
+  printf("core %d time: %lfs mperf rate: %lf/s aperf rate: %lf/s, tsc rate: %lf/s\n", 
+	 core, elapsedTime, 
 	 (mperf_aperf_end[0] - mperf_aperf_begin[0]) / elapsedTime,
 	 (mperf_aperf_end[1] - mperf_aperf_begin[1]) / elapsedTime,
 	 (tsc_end - tsc_begin) / elapsedTime);
-  printf("aperf/mperf ratio: %lf\n", 
+  printf("core %d aperf/mperf ratio: %lf\n", core,
 	 (double)(mperf_aperf_end[1] - mperf_aperf_begin[1]) / 
 	 (mperf_aperf_end[0] - mperf_aperf_begin[0]));
 
