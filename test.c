@@ -106,7 +106,7 @@ int main(int argc, char ** argv){
 
   printf("core %d begin mperf: 0x%llx aperf: 0x%llx\n", core,
 	 mperf_aperf_begin[0], mperf_aperf_begin[1]);
-  printf("core %d  end mperf: 0x%llx aperf: 0x%llx\n", core, 
+  printf("core %d   end mperf: 0x%llx aperf: 0x%llx\n", core, 
 	 mperf_aperf_end[0], mperf_aperf_end[1]);
   printf("core %d time: %lfs mperf rate: %lf/s aperf rate: %lf/s, tsc rate: %lf/s\n", 
 	 core, elapsedTime, 
