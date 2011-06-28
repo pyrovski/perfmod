@@ -1,0 +1,7 @@
+filename:       /tmp/perfmod/perfmod.ko
+description:    export aperf and mperf counters
+author:         Peter Bailey <peter.eldridge.bailey@gmail.com>
+license:        GPL
+srcversion:     5121ED3C28350E7C963B186
+depends:        
+vermagic:       2.6.18-105chaosdvfs SMP mod_unload gcc-4.1
