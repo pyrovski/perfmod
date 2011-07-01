@@ -30,10 +30,10 @@ procfile_read(char *buffer,
   if (offset > 0) {
     /* we have finished to read, return 0 */
     ret  = 0;
-  } else if(buffer_length < 8){
+  } else if(buffer_length < sizeof(u64)){
     // this should be an error...
     ret = 0;
-  } else if(buffer_length < 16){
+  } else if(buffer_length < 2 * sizeof(u64)){
     rdmsrl(MSR_IA32_MPERF, mperf);
     *((u64*)buffer) = mperf;
     ret = sizeof(u64);

@@ -70,6 +70,7 @@ int main(int argc, char ** argv){
       section = *((int*)&cpu_set + i);
       if(!section)
 	continue;
+
       int shift_count = 0;
       while(!(section & 1)){
 	section >>= 1;
