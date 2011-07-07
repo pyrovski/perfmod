@@ -51,15 +51,25 @@ int main(int argc, char ** argv){
   FILE *file = fopen("/proc/mperf_aperf", "r");
   assert(file);
 
-  cpu_set_t cpu_set;
-  int core = 0;
-  CPU_ZERO(&cpu_set);
-  if(argc > 1){
-    if(atoi(argv[1]) >= 0)
-      core = atoi(argv[1]);
-    else
-      core = -1;
+  int active = 1;
+  int core = -1;
+  int opt;
+  while((opt = getopt(argc, argv, "pc:")) != -1){
+    switch(opt){
+    case 'p':
+      active = 0;
+      printf("passive mode\n");
+      break;
+    case 'c':
+      core = atoi(optarg);
+      break;
+    default:
+      break;
+    }
   }
+
+  cpu_set_t cpu_set;
+  CPU_ZERO(&cpu_set);
   if(core >= 0){
     CPU_SET(core, &cpu_set);
     sched_setaffinity(0, sizeof(cpu_set_t), &cpu_set);
@@ -92,9 +102,12 @@ int main(int argc, char ** argv){
   tsc_begin = rdtsc();
   status = fseek(file, 0, SEEK_SET);
   assert(!status);
-  
-  volatile uint64_t count;
-  for(count = 0; count < 500000000; count++);
+
+  if(active){
+    volatile uint64_t count;
+    for(count = 0; count < 500000000; count++);
+  } else
+    sleep(1);
 
   status = fread(mperf_aperf_end, sizeof(uint64_t) * 2, 1, file);
   tsc_end = rdtsc();
