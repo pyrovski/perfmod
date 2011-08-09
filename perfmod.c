@@ -15,6 +15,8 @@ MODULE_DESCRIPTION("export aperf and mperf counters on Nehalem");
 
 struct proc_dir_entry *proc_file;
 
+static int read;
+
 int
 procfile_read(char *buffer,
 	      char **buffer_location,
@@ -27,17 +29,12 @@ procfile_read(char *buffer,
   printk(KERN_INFO "procfile_read (/proc/%s) called\n", procfs_name);
 #endif
 
-  if (offset > 0) {
+  if (read == 1) {
     /* we have finished to read, return 0 */
     ret  = 0;
-  } else if(buffer_length < sizeof(u64)){
-    // this should be an error...
-    ret = 0;
-  } else if(buffer_length < 2 * sizeof(u64)){
-    rdmsrl(MSR_IA32_MPERF, mperf);
-    *((u64*)buffer) = mperf;
-    ret = sizeof(u64);
-  } else {
+    read = 0;
+    *eof = 1;
+  } else if(buffer_length >= 2 * sizeof(u64)){
     //int size;
 
     rdmsrl(MSR_IA32_MPERF, mperf);
@@ -50,6 +47,7 @@ procfile_read(char *buffer,
     *((u64*)buffer) = mperf;
     *((u64*)buffer + 1) = aperf;
     ret = 2 * sizeof(u64);
+    read = 1;
   }
 
   return ret;
