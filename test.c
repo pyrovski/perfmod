@@ -7,6 +7,9 @@
 #include <sys/time.h>
 #include <sched.h>
 
+void test1(int active, int core);
+void test2(int active, int core);
+
 // result = x - y
 int
 timeval_subtract (result, x, y)
@@ -48,13 +51,13 @@ static inline uint64_t rdtsc(void)
 }
 
 int main(int argc, char ** argv){
-  FILE *file = fopen("/proc/mperf_aperf", "r");
-  assert(file);
 
   int active = 1;
   int core = -1;
   int opt;
-  while((opt = getopt(argc, argv, "pc:")) != -1){
+  int whichTest = 1;
+  int iterations = 1;
+  while((opt = getopt(argc, argv, "12pc:n:")) != -1){
     switch(opt){
     case 'p':
       active = 0;
@@ -62,6 +65,15 @@ int main(int argc, char ** argv){
       break;
     case 'c':
       core = atoi(optarg);
+      break;
+    case '1':
+      whichTest = 1;
+      break;
+    case '2':
+      whichTest = 2;
+      break;
+    case 'n':
+      iterations = atoi(optarg);
       break;
     default:
       break;
@@ -93,11 +105,38 @@ int main(int argc, char ** argv){
       printf("could not determine core association\n");
   }
   
+  switch(whichTest){
+  case 1:
+    {
+      int i;
+      for(i = 0; i < iterations; i++)
+	test1(active, core);
+    }
+    break;
+  case 2:
+    {
+      int i;
+      for(i = 0; i < iterations; i++)
+	test2(active, core);
+    }
+    break;
+  default:
+    printf("invalid test: %d\n", whichTest);
+    break;
+  }
+
+  return 0;
+}
+
+void test1(int active, int core){
   struct timeval tvBegin, tvEnd, tvDiff;
   
-  gettimeofday(&tvBegin, 0);
   uint64_t mperf_aperf_begin[2], mperf_aperf_end[2],
     tsc_begin, tsc_end;
+
+  FILE *file = fopen("/proc/mperf_aperf", "r");
+  assert(file);
+  gettimeofday(&tvBegin, 0);
   int status = fread(mperf_aperf_begin, sizeof(uint64_t) * 2, 1, file);
   tsc_begin = rdtsc();
   status = fseek(file, 0, SEEK_SET);
@@ -130,7 +169,51 @@ int main(int argc, char ** argv){
   printf("core %d aperf/mperf ratio: %lf\n", core,
 	 (double)(mperf_aperf_end[1] - mperf_aperf_begin[1]) / 
 	 (mperf_aperf_end[0] - mperf_aperf_begin[0]));
-
-   return 0;
 }
 
+void test2(int active, int core){
+  struct timeval tvBegin, tvEnd, tvDiff;
+  
+  uint64_t mperf_aperf_begin[2], mperf_aperf_end[2],
+    tsc_begin, tsc_end;
+
+  FILE *file = fopen("/proc/mperf_aperf", "r");
+  assert(file);
+  gettimeofday(&tvBegin, 0);
+  int status = fread(mperf_aperf_begin, sizeof(uint64_t) * 2, 1, file);
+  tsc_begin = rdtsc();
+  status = fclose(file);
+  assert(!status);
+
+  if(active){
+    volatile uint64_t count;
+    for(count = 0; count < 500000000; count++);
+  } else
+    sleep(1);
+
+
+  file = fopen("/proc/mperf_aperf", "r");
+  assert(file);
+  status = fread(mperf_aperf_end, sizeof(uint64_t) * 2, 1, file);
+  tsc_end = rdtsc();
+  gettimeofday(&tvEnd, 0);
+  status = fclose(file);
+  assert(!status);
+
+  timeval_subtract(&tvDiff, &tvEnd, &tvBegin);
+  
+  double elapsedTime = tvDiff.tv_sec + tvDiff.tv_usec / 1000000.0;
+
+  printf("core %d begin mperf: 0x%llx aperf: 0x%llx\n", core,
+	 mperf_aperf_begin[0], mperf_aperf_begin[1]);
+  printf("core %d   end mperf: 0x%llx aperf: 0x%llx\n", core, 
+	 mperf_aperf_end[0], mperf_aperf_end[1]);
+  printf("core %d time: %lfs mperf rate: %lf/s aperf rate: %lf/s, tsc rate: %lf/s\n", 
+	 core, elapsedTime, 
+	 (mperf_aperf_end[0] - mperf_aperf_begin[0]) / elapsedTime,
+	 (mperf_aperf_end[1] - mperf_aperf_begin[1]) / elapsedTime,
+	 (tsc_end - tsc_begin) / elapsedTime);
+  printf("core %d aperf/mperf ratio: %lf\n", core,
+	 (double)(mperf_aperf_end[1] - mperf_aperf_begin[1]) / 
+	 (mperf_aperf_end[0] - mperf_aperf_begin[0]));
+}
