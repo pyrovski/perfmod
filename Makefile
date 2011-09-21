@@ -14,6 +14,7 @@ module:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 
 test: test.c
+	mpicxx -o test test.c $(CFLAGS)
 
 clean:
 	rm -f ./test ./*.order ./*.cmd ./*.o ./*.symvers ./*~ ./*.markers

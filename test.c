@@ -1,4 +1,4 @@
-#define _GNU_SOURCE
+//#define _GNU_SOURCE
 #include <stdio.h>
 #include <unistd.h>
 #include <assert.h>
@@ -6,15 +6,17 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sched.h>
+#include <mpi.h>
 
 void test1(int active, int core);
 void test2(int active, int core);
 void test3(int active, int core);
 
+int rank, size;
+
 // result = x - y
 int
-timeval_subtract (result, x, y)
-     struct timeval *result, *x, *y;
+timeval_subtract (struct timeval *result, struct timeval *x, struct timeval *y)
 {
   /* Perform the carry for the later subtraction by updating y. */
   if (x->tv_usec < y->tv_usec) {
@@ -109,6 +111,10 @@ int main(int argc, char ** argv){
       printf("could not determine core association\n");
   }
   
+  MPI_Init(&argc, &argv);
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+
   switch(whichTest){
   case 1:
     {
@@ -136,6 +142,7 @@ int main(int argc, char ** argv){
     break;
   }
 
+  MPI_Finalize();
   return 0;
 }
 
@@ -230,7 +237,7 @@ void test2(int active, int core){
 }
 
 void test3(int active, int core){
-  const unsigned reps = 10000, delay_us = 0, delay_counts = 50000;
+  const unsigned reps = 100000, delay_us = 0, delay_counts = 50000;
   struct timeval tvEnd[reps], tvDiff;
 
   uint64_t mperf_aperf_end[reps*2],
@@ -264,12 +271,14 @@ void test3(int active, int core){
 	usleep(delay_us);
     }
   }
-  file = fopen("test.dat", "w");
+  char buffer[80];
+  sprintf(buffer, "test.%d.dat", rank);
+  file = fopen(buffer, "w");
   assert(file);
   fprintf(file, "mperf\taperf\ttsc\ttime\n");
   for(rcount = 0; rcount < reps; rcount++){
     timeval_subtract(&tvDiff, &tvEnd[rcount], &tvEnd[0]);
-    fprintf(file, "0x%llx\t0x%llx\t0x%llx\t%le\n", 
+    fprintf(file, "0x%llx\t0x%llx\t0x%llx\t%3.6le\n", 
 	    mperf_aperf_end[2*rcount], 
 	    mperf_aperf_end[2*rcount+1], 
 	    tsc_end[rcount],
