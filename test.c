@@ -233,7 +233,8 @@ void test3(int active, int core){
   const unsigned reps = 10000, delay_us = 0, delay_counts = 50000;
   struct timeval tvEnd[reps], tvDiff;
 
-  uint64_t mperf_end[reps], aperf_end[reps], tsc_end[reps], mperf_aperf_tmp[2];
+  uint64_t mperf_aperf_end[reps*2],
+    tsc_end[reps], mperf_aperf_tmp[2];
 
   FILE *file = fopen("/proc/mperf_aperf", "r");
   assert(file);
@@ -243,11 +244,9 @@ void test3(int active, int core){
   if(active){
     for(rcount = 0; rcount < reps; rcount++){
       file = fopen("/proc/mperf_aperf", "r");
-      fread(&mperf_aperf_tmp, sizeof(uint64_t) * 2, 1, file);
+      fread(mperf_aperf_end+rcount*2, sizeof(uint64_t) * 2, 1, file);
       tsc_end[rcount] = rdtsc();
       gettimeofday(tvEnd + rcount, 0);
-      mperf_end[rcount] = mperf_aperf_tmp[0];
-      aperf_end[rcount] = mperf_aperf_tmp[1];
       fclose(file);
       
       volatile uint64_t count;
@@ -256,11 +255,9 @@ void test3(int active, int core){
   } else{
     for(rcount = 0; rcount < reps; rcount++){
       file = fopen("/proc/mperf_aperf", "r");
-      fread(&mperf_aperf_tmp, sizeof(uint64_t) * 2, 1, file);
+      fread(mperf_aperf_end+rcount*2, sizeof(uint64_t) * 2, 1, file);
       tsc_end[rcount] = rdtsc();
       gettimeofday(tvEnd + rcount, 0);
-      mperf_end[rcount] = mperf_aperf_tmp[0];
-      aperf_end[rcount] = mperf_aperf_tmp[1];
       fclose(file);
 
       if(delay_us)
@@ -273,8 +270,8 @@ void test3(int active, int core){
   for(rcount = 0; rcount < reps; rcount++){
     timeval_subtract(&tvDiff, &tvEnd[rcount], &tvEnd[0]);
     fprintf(file, "0x%llx\t0x%llx\t0x%llx\t%le\n", 
-	    mperf_end[rcount], 
-	    aperf_end[rcount], 
+	    mperf_aperf_end[2*rcount], 
+	    mperf_aperf_end[2*rcount+1], 
 	    tsc_end[rcount],
 	    (double)tvDiff.tv_sec + tvDiff.tv_usec / 1000000.0);
   }
