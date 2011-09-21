@@ -1,4 +1,13 @@
 obj-m += perfmod.o
+
+ifneq ($(dbg),)
+DBG=-D_DEBUG=$(dbg) -g -pg
+CFLAGS += -O0
+else
+CFLAGS += -O3
+endif
+
+
 all: module test
 
 module:
