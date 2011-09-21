@@ -107,13 +107,20 @@ int main(int argc, char ** argv){
       core = shift_count;
       break;
     }
-    if(core < 0)
-      printf("could not determine core association\n");
+    if(core < 0){
+      printf("could not determine core association; quitting\n");
+      MPI_Abort(MPI_COMM_WORLD, 1);
+    }
   }
   
+  char hostname[80];
+  gethostname(hostname, 80);
+
   MPI_Init(&argc, &argv);
   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
   MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+  printf("rank %d on core %d of %s\n", rank, core, hostname);
 
   switch(whichTest){
   case 1:
@@ -237,7 +244,7 @@ void test2(int active, int core){
 }
 
 void test3(int active, int core){
-  const unsigned reps = 1000, delay_us = 0, delay_counts = 50000;
+  const unsigned reps = 100000, delay_us = 0, delay_counts = 50000;
   struct timeval tvEnd[reps], tvDiff;
   double times[reps];
 
@@ -277,25 +284,36 @@ void test3(int active, int core){
   sprintf(buffer, "test.%d.dat", rank);
   file = fopen(buffer, "w");
   assert(file);
-  fprintf(file, "mperf\taperf\ttsc\ttime\n");
+  fprintf(file, "mperf\taperf\ttsc\ttime\terror\n");
+  int error;
   for(rcount = 0; rcount < reps; rcount++){
     timeval_subtract(&tvDiff, &tvEnd[rcount], &tvEnd[0]);
     times[rcount] = (double)tvDiff.tv_sec + tvDiff.tv_usec / 1000000.0;
+    error = 0;
     if(rcount){ // detect abnormalities
-      if(mperf_aperf_end[2*rcount] <= mperf_aperf_end[2*(rcount-1)])
+      if(mperf_aperf_end[2*rcount] <= mperf_aperf_end[2*(rcount-1)]){
 	printf("rank %d mperf abnormal at index %d\n", rank, rcount);
-      if(mperf_aperf_end[2*rcount+1] <= mperf_aperf_end[2*(rcount-1)+1])
-	 printf("rank %d aperf abnormal at index %d\n", rank, rcount);
-      if(tsc_end[rcount] <= tsc_end[rcount-1])
+	error = 1;
+      }
+      if(mperf_aperf_end[2*rcount+1] <= mperf_aperf_end[2*(rcount-1)+1]){
+	printf("rank %d aperf abnormal at index %d\n", rank, rcount);
+	error = 1;
+      }
+      if(tsc_end[rcount] <= tsc_end[rcount-1]){
 	printf("rank %d tsc abnormal at index %d\n", rank, rcount);
-      if(times[rcount] <= times[rcount-1])
+	error = 1;
+      }
+      if(times[rcount] <= times[rcount-1]){
 	printf("rank %d time abnormal at index %d\n", rank, rcount);
+	error = 1;
+      }
     }
-    fprintf(file, "0x%llx\t0x%llx\t0x%llx\t%3.6le\n", 
+    fprintf(file, "0x%llx\t0x%llx\t0x%llx\t%3.6le\t%d\n", 
 	    mperf_aperf_end[2*rcount], 
 	    mperf_aperf_end[2*rcount+1], 
 	    tsc_end[rcount],
-	    times[rcount]);
+	    times[rcount], 
+	    error);
   }
   fclose(file);
 }
