@@ -237,11 +237,13 @@ void test2(int active, int core){
 }
 
 void test3(int active, int core){
-  const unsigned reps = 100000, delay_us = 0, delay_counts = 50000;
+  const unsigned reps = 1000, delay_us = 0, delay_counts = 50000;
   struct timeval tvEnd[reps], tvDiff;
+  double times[reps];
 
-  uint64_t mperf_aperf_end[reps*2],
-    tsc_end[reps], mperf_aperf_tmp[2];
+  // first 64 of every 128 bits is mperf, second is aperf
+  uint64_t mperf_aperf_end[reps*2], 
+    tsc_end[reps];
 
   FILE *file = fopen("/proc/mperf_aperf", "r");
   assert(file);
@@ -278,11 +280,22 @@ void test3(int active, int core){
   fprintf(file, "mperf\taperf\ttsc\ttime\n");
   for(rcount = 0; rcount < reps; rcount++){
     timeval_subtract(&tvDiff, &tvEnd[rcount], &tvEnd[0]);
+    times[rcount] = (double)tvDiff.tv_sec + tvDiff.tv_usec / 1000000.0;
+    if(rcount){ // detect abnormalities
+      if(mperf_aperf_end[2*rcount] <= mperf_aperf_end[2*(rcount-1)])
+	printf("rank %d mperf abnormal at index %d\n", rank, rcount);
+      if(mperf_aperf_end[2*rcount+1] <= mperf_aperf_end[2*(rcount-1)+1])
+	 printf("rank %d aperf abnormal at index %d\n", rank, rcount);
+      if(tsc_end[rcount] <= tsc_end[rcount-1])
+	printf("rank %d tsc abnormal at index %d\n", rank, rcount);
+      if(times[rcount] <= times[rcount-1])
+	printf("rank %d time abnormal at index %d\n", rank, rcount);
+    }
     fprintf(file, "0x%llx\t0x%llx\t0x%llx\t%3.6le\n", 
 	    mperf_aperf_end[2*rcount], 
 	    mperf_aperf_end[2*rcount+1], 
 	    tsc_end[rcount],
-	    (double)tvDiff.tv_sec + tvDiff.tv_usec / 1000000.0);
+	    times[rcount]);
   }
   fclose(file);
 }
