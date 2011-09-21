@@ -111,6 +111,9 @@ int main(int argc, char ** argv){
       printf("could not determine core association; quitting\n");
       MPI_Abort(MPI_COMM_WORLD, 1);
     }
+    CPU_ZERO(&cpu_set);
+    CPU_SET(core, &cpu_set);
+    sched_setaffinity(0, sizeof(cpu_set_t), &cpu_set);
   }
   
   char hostname[80];
@@ -281,7 +284,7 @@ void test3(int active, int core){
     }
   }
   char buffer[80];
-  sprintf(buffer, "test.%d.dat", rank);
+  sprintf(buffer, "test.%03d.dat", rank);
   file = fopen(buffer, "w");
   assert(file);
   fprintf(file, "mperf\taperf\ttsc\ttime\terror\n");
