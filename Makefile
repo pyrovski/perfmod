@@ -2,9 +2,9 @@ obj-m += perfmod.o
 
 ifneq ($(dbg),)
 DBG=-D_DEBUG=$(dbg) -g -pg
-CFLAGS += -O0
+MYCFLAGS += -O0
 else
-CFLAGS += -O3
+MYCFLAGS += -O3
 endif
 
 
@@ -14,7 +14,7 @@ module:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 
 test: test.c
-	mpicxx -o test test.c $(CFLAGS)
+	mpicxx -o test test.c $(MYCFLAGS)
 
 clean:
 	rm -f ./test ./*.order ./*.cmd ./*.o ./*.symvers ./*~ ./*.markers
