@@ -16,9 +16,8 @@ MODULE_DESCRIPTION("export aperf and mperf counters on Nehalem");
 struct proc_dir_entry *proc_file;
 
 int
-procfile_read(char *buffer,
-	      char **buffer_location,
-	      off_t offset, int buffer_length, int *eof, void *data)
+procfile_read(struct file *file, char __user *buf,
+	      size_t len, loff_t *ppos)
 {
   int ret;
   u64 aperf, mperf;
@@ -27,10 +26,9 @@ procfile_read(char *buffer,
   printk(KERN_INFO "procfile_read (/proc/%s) called\n", procfs_name);
 #endif
 
-  if (!buffer || offset > 0 || buffer_length < 2 * sizeof(u64)) {
+  if (!buf || len < 2 * sizeof(u64)) {
     /* we have finished to read, return 0 */
     ret  = 0;
-    *eof = 1;
   } else {
     //int size;
 
@@ -41,17 +39,22 @@ procfile_read(char *buffer,
     printk(KERN_ALERT "aperf: 0x%llx mperf: 0x%llx\n", aperf, mperf);
 #endif
 
-    *((u64*)buffer) = mperf;
-    *((u64*)buffer + 1) = aperf;
+    *((u64*)buf) = mperf;
+    *((u64*)buf + 1) = aperf;
     ret = 2 * sizeof(u64);
   }
 
   return ret;
 }
 
+static const struct file_operations ops = {
+  .owner = THIS_MODULE,
+  .read = procfile_read
+};
+
 int __init init_module(void)
 {
-  proc_file = create_proc_entry(procfs_name, 0644, NULL);
+  proc_file = proc_create(procfs_name, 0, 0, &ops);
     
   if (proc_file == NULL) {
     remove_proc_entry(procfs_name, 0);
@@ -59,12 +62,6 @@ int __init init_module(void)
 	   procfs_name);
     return -ENOMEM;
   }
-
-  proc_file->read_proc = procfile_read;
-  proc_file->mode  = S_IFREG | S_IRUGO;
-  proc_file->uid  = 0;
-  proc_file->gid  = 0;
-  proc_file->size  = 16;
 
 #ifdef perfmod_DEBUG
   printk(KERN_INFO "/proc/%s created\n", procfs_name);
