@@ -8,13 +8,16 @@ MYCFLAGS += -O3
 endif
 
 
-all: module test
+all: module test omp_test
 
 module:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 
 test: test.c
-	mpicxx -o test test.c $(MYCFLAGS)
+	mpicc -o $@ $^ $(MYCFLAGS)
+
+omp_test: omp_test.c
+	gcc -o $@ $^ $(MYCFLAGS) -fopenmp
 
 clean:
 	rm -f ./test ./*.order ./*.cmd ./*.o ./*.symvers ./*~ ./*.markers
