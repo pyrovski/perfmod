@@ -4,6 +4,7 @@
 #include <linux/types.h>
 #include <asm/msr.h>
 #include <linux/errno.h>
+#include <linux/uaccess.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Peter Bailey <peter.eldridge.bailey@gmail.com>");
@@ -20,7 +21,7 @@ procfile_read(struct file *file, char __user *buf,
 	      size_t len, loff_t *ppos)
 {
   int ret;
-  u64 aperf, mperf;
+  u64 mperf_aperf[2];
   
 #ifdef perfmod_DEBUG
   printk(KERN_INFO "procfile_read (/proc/%s) called\n", procfs_name);
@@ -28,23 +29,23 @@ procfile_read(struct file *file, char __user *buf,
 
   if (!buf || len < 2 * sizeof(u64)) {
     /* we have finished to read, return 0 */
-    ret  = 0;
+    return 0;
   } else {
     //int size;
 
-    rdmsrl(MSR_IA32_MPERF, mperf);
-    rdmsrl(MSR_IA32_APERF, aperf);
+    rdmsrl(MSR_IA32_MPERF, mperf_aperf[0]);
+    rdmsrl(MSR_IA32_APERF, mperf_aperf[1]);
 
 #ifdef perfmod_DEBUG
-    printk(KERN_ALERT "aperf: 0x%llx mperf: 0x%llx\n", aperf, mperf);
+    printk(KERN_ALERT "aperf: 0x%llx mperf: 0x%llx\n", mperf_aperf[0], mperf_aperf[1]);
 #endif
 
+    /*
     *((u64*)buf) = mperf;
     *((u64*)buf + 1) = aperf;
-    ret = 2 * sizeof(u64);
+    */
+    return 2 * sizeof(u64) - copy_to_user(buf, mperf_aperf, 2 * sizeof(u64));
   }
-
-  return ret;
 }
 
 static const struct file_operations ops = {
